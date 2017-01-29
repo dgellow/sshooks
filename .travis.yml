@@ -16,6 +16,7 @@ install:
 script:
   - go test -v -covermode=count -coverprofile=coverage.out ./sshgit
   - $HOME/gopath/bin/goveralls -coverprofile=coverage.out -service=travis-ci -repotoken $COVERALLS_TOKEN
+  - cd example && go build
 
 notifications:
   slack:
