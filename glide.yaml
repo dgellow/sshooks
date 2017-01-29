@@ -1,13 +1,5 @@
 package: github.com/qrclabs/go-ssh-server
 import:
-- package: github.com/Unknwon/com
-  version: ^1.0.0
-- package: github.com/gogits/gogs
-  version: ^0.9.113
-  subpackages:
-  - models
-  - modules/log
-  - modules/setting
 - package: golang.org/x/crypto
   subpackages:
   - ssh
