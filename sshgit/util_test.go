@@ -1,13 +1,13 @@
 package sshgit
 
 import (
-	"testing"
-	"os"
 	"io/ioutil"
+	"os"
+	"testing"
 )
 
 type TestDataUIntToStr struct {
-	in uint
+	in  uint
 	out string
 }
 
@@ -27,7 +27,7 @@ func TestUIntToStr(t *testing.T) {
 }
 
 type TestDataFileExists struct {
-	in string
+	in  string
 	out bool
 }
 
@@ -61,11 +61,11 @@ func TestFileExists(t *testing.T) {
 }
 
 type TestDataExecCmd struct {
-	in string
+	in     string
 	inArgs []string
 	stdout string
 	stderr string
-	err string
+	err    string
 }
 
 func TestExecCmd(t *testing.T) {

@@ -1,14 +1,14 @@
 package main
 
 import (
-	"strings"
-	"os"
-	"fmt"
-	"errors"
 	"bufio"
+	"errors"
+	"fmt"
+	"os"
+	"strings"
 
 	"github.com/gogits/gogs/modules/log"
-	"github.com/qrclabs/go-ssh-server/sshgit"
+	"github.com/qrclabs/go-ssh-git/sshgit"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -17,7 +17,7 @@ func checkPubKey(key ssh.PublicKey) (*ssh.PublicKey, error) {
 
 	filename := "authorized_keys.txt"
 	file, err := os.Open(filename)
-	if err!= nil {
+	if err != nil {
 		log.Fatal(4, "Cannot open file: %s, error: %v", filename, err)
 	}
 	defer file.Close()
@@ -43,8 +43,8 @@ func checkPubKey(key ssh.PublicKey) (*ssh.PublicKey, error) {
 	return nil, errors.New("key not found")
 }
 
-func PublicKeyHandler(conn ssh.ConnMetadata, key ssh.PublicKey) (*ssh.Permissions, error) {
-	_, err := checkPubKey(key);
+func publicKeyHandler(conn ssh.ConnMetadata, key ssh.PublicKey) (*ssh.Permissions, error) {
+	_, err := checkPubKey(key)
 	if err != nil {
 		log.Error(3, "Cannot find key: %v", err)
 		return nil, err
@@ -56,16 +56,17 @@ func main() {
 	fmt.Println("Start program")
 
 	config := sshgit.ServerConfig{
-		Host: "localhost",
-		Port: 1337,
-		PrivatekeyPath: "key.rsa",
-		KeygenConfig: sshgit.SSHKeygenConfig{"rsa", ""},
-		PublicKeyCallback: PublicKeyHandler,
+		Host:              "localhost",
+		Port:              1337,
+		PrivatekeyPath:    "key.rsa",
+		KeygenConfig:      sshgit.SSHKeygenConfig{"rsa", ""},
+		PublicKeyCallback: publicKeyHandler,
 	}
 
 	fmt.Println("Run server")
 	sshgit.Listen(config)
 
 	// Keep the program running
-	for {}
+	for {
+	}
 }

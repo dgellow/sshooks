@@ -1,12 +1,12 @@
 package sshgit
 
 import (
-	"os/exec"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"net"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 
