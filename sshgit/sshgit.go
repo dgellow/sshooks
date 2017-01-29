@@ -60,7 +60,7 @@ func Listen(config ServerConfig) {
 		// -N <new_passphrase>
 		_, stderr, err := ExecCmd("ssh-keygen", "-f", keyPath, "-t", config.KeygenConfig.Type, "-N", config.KeygenConfig.Passphrase)
 		if err != nil {
-			panic(FormatLog(fmt.Sprintf("Failed to generate private key: %v - %s", err, stderr)))
+			log.Fatal(4, FormatLog("Failed to generate private key: %v - %s"), err, stderr)
 		}
 		log.Trace(FormatLog(fmt.Sprintf("Generated a new private key at: %s", keyPath)))
 	}
@@ -68,11 +68,11 @@ func Listen(config ServerConfig) {
 	// Read private key
 	privateBytes, err := ioutil.ReadFile(keyPath)
 	if err != nil {
-		panic(FormatLog("Failed to read private key"))
+		log.Fatal(4, FormatLog("Failed to read private key"))
 	}
 	private, err := ssh.ParsePrivateKey(privateBytes)
 	if err != nil {
-		panic(FormatLog("Failed to parse private key"))
+		log.Fatal(4, FormatLog("Failed to parse private key"))
 	}
 	sshConfig.AddHostKey(private)
 
