@@ -59,3 +59,32 @@ func TestFileExists(t *testing.T) {
 		}
 	}
 }
+
+type TestDataExecCmd struct {
+	in string
+	inArgs []string
+	stdout string
+	stderr string
+	err string
+}
+
+func TestExecCmd(t *testing.T) {
+	tests := []TestDataExecCmd{
+		{"", []string{}, "", "", "fork/exec : no such file or directory"},
+		{"echo", []string{"hello", "you"}, "hello you\n", "", ""},
+		{"mkdir", []string{"foo/bar/nopnop"}, "", "mkdir: foo/bar: No such file or directory\n", "exit status 1"},
+	}
+
+	for i, test := range tests {
+		stdout, stderr, err := ExecCmd(test.in, test.inArgs...)
+		if test.stdout != stdout {
+			t.Errorf("#%d: stdout, _, _ := ExecCmd(%s) == %s; expected %s", i, test.in, stdout, test.stdout)
+		}
+		if test.stderr != stderr {
+			t.Errorf("#%d: _, stderr, _ := ExecCmd(%s) == %s; expected %s", i, test.in, stderr, test.stderr)
+		}
+		if (err == nil && test.err != "") || (err != nil && err.Error() != test.err) {
+			t.Errorf("#%d: _, _, err := ExecCmd(%s) == %v; expected %v", i, test.in, err, test.err)
+		}
+	}
+}
