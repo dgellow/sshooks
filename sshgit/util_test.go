@@ -69,10 +69,19 @@ type TestDataExecCmd struct {
 }
 
 func TestExecCmd(t *testing.T) {
+	failScript := []byte("#!/bin/sh\n" +
+		"echo my awesome error 1>&2\n" +
+		"exit 1\n")
+	err := ioutil.WriteFile("failScript.sh", failScript, 0777)
+	defer os.Remove("failScript.sh")
+	if err != nil {
+		t.Error("Couldn't create file needed by tests: failScript.sh")
+	}
+
 	tests := []TestDataExecCmd{
 		{"", []string{}, "", "", "fork/exec : no such file or directory"},
 		{"echo", []string{"hello", "you"}, "hello you\n", "", ""},
-		{"/bin/ls", []string{"foo/bar/nopnop"}, "", "ls: foo/bar/nopnop: No such file or directory\n", "exit status 1"},
+		{"sh", []string{"failScript.sh"}, "", "my awesome error\n", "exit status 1"},
 	}
 
 	for i, test := range tests {
