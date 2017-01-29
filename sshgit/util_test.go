@@ -72,7 +72,7 @@ func TestExecCmd(t *testing.T) {
 	tests := []TestDataExecCmd{
 		{"", []string{}, "", "", "fork/exec : no such file or directory"},
 		{"echo", []string{"hello", "you"}, "hello you\n", "", ""},
-		{"ls", []string{"foo/bar/nopnop"}, "", "ls: foo/bar/nopnop: No such file or directory\n", "exit status 1"},
+		{"/bin/ls", []string{"foo/bar/nopnop"}, "", "ls: foo/bar/nopnop: No such file or directory\n", "exit status 1"},
 	}
 
 	for i, test := range tests {
