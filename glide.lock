@@ -1,6 +1,10 @@
-hash: 9c39ad397ca0ada9ff6bd2016c916e6c24a63b04ee1852a0e7a1e15f64541157
-updated: 2017-01-29T02:26:17.023347664+01:00
+hash: ec90dfdb1ec68ccd4812373547ba427a87bc5c4a066464a91664f461deb73713
+updated: 2017-01-29T12:04:39.375170239+01:00
 imports:
+- name: github.com/gogits/gogs
+  version: 114c179e5a50e3313f7a5894100693805e64e440
+  subpackages:
+  - modules/log
 - name: golang.org/x/crypto
   version: 854ae91cdcbf914b499b1d7641d07859f3653481
   subpackages:

@@ -1,3 +1,5 @@
 *.a
 dist/
 .DS_Store
+vendor
+go-ssh-server

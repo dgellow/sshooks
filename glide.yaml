@@ -3,3 +3,7 @@ import:
 - package: golang.org/x/crypto
   subpackages:
   - ssh
+- package: github.com/gogits/gogs
+  version: ^0.9.113
+  subpackages:
+  - modules/log

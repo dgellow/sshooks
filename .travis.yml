@@ -6,6 +6,7 @@ go:
   - master
 
 install: true
+script: go test ./sshgit
 
 notifications:
   slack:

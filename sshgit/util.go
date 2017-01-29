@@ -25,6 +25,6 @@ func FileExists(path string) bool {
 	return err == nil || os.IsExist(err)
 }
 
-func IntToStr(i int) string {
+func UIntToStr(i uint) string {
 	return strconv.FormatInt(int64(i), 10)
 }
