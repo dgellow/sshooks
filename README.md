@@ -1,5 +1,5 @@
 [![Build Status](https://travis-ci.org/QRCLabs/go-ssh-git.svg?branch=master)](https://travis-ci.org/QRCLabs/go-ssh-git)
-[![Coverage Status](https://coveralls.io/repos/github/QRCLabs/go-ssh-git/badge.svg?branch=master)](https://coveralls.io/github/QRCLabs/go-ssh-git?branch=master)
+[![Coverage Status](https://coveralls.io/repos/github/QRCLabs/go-ssh-git/badge.svg?branch=master)](https://coveralls.io/github/QRCLabs/go-ssh-git?branch=master) [![Go Report Card](https://goreportcard.com/badge/github.com/qrclabs/go-ssh-git)](https://goreportcard.com/report/github.com/qrclabs/go-ssh-git)
 
 # Handle git requests sent via a SSH connection
 
