@@ -13,10 +13,10 @@ import (
 	"github.com/gogits/gogs/modules/log"
 )
 
-var PackageName = "SSHGit"
+var packageName = "SSHGit"
 
 func FormatLog(s string) string {
-	return fmt.Sprintf("%s: %s", PackageName, s)
+	return fmt.Sprintf("%s: %s", packageName, s)
 }
 
 type PubKeyHandler func(conn ssh.ConnMetadata, key ssh.PublicKey) (*ssh.Permissions, error)
