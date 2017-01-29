@@ -18,7 +18,7 @@ func FormatLog(s string) string {
 	return fmt.Sprintf("%s: %s", PackageName, s)
 }
 
-type PubKeyHandler func (conn ssh.ConnMetadata, key ssh.PublicKey) (*ssh.Permissions, error)
+type PubKeyHandler func(conn ssh.ConnMetadata, key ssh.PublicKey) (*ssh.Permissions, error)
 
 type SSHKeygenConfig struct {
 	// Default to rsa
@@ -29,15 +29,13 @@ type SSHKeygenConfig struct {
 
 type ServerConfig struct {
 	// Default to localhost
-	Host string
-	Port uint
-	PrivatekeyPath string
+	Host              string
+	Port              uint
+	PrivatekeyPath    string
 	PublicKeyCallback PubKeyHandler
-	KeygenConfig SSHKeygenConfig
-	Log *log.Logger
+	KeygenConfig      SSHKeygenConfig
+	Log               *log.Logger
 }
-
-
 
 // Starts an SSH server on given port
 func Listen(config ServerConfig) {
@@ -60,7 +58,7 @@ func Listen(config ServerConfig) {
 		// -f <filename>
 		// -t <keytype>
 		// -N <new_passphrase>
-		_, stderr, err :=  ExecCmd("ssh-keygen", "-f", keyPath, "-t", config.KeygenConfig.Type, "-N", config.KeygenConfig.Passphrase)
+		_, stderr, err := ExecCmd("ssh-keygen", "-f", keyPath, "-t", config.KeygenConfig.Type, "-N", config.KeygenConfig.Passphrase)
 		if err != nil {
 			panic(FormatLog(fmt.Sprintf("Failed to generate private key: %v - %s", err, stderr)))
 		}
@@ -88,7 +86,7 @@ func Listen(config ServerConfig) {
 // Actual server
 func serve(config *ssh.ServerConfig, host string, port int, log *log.Logger) {
 	// Listen on given host and port
-	listener, err := net.Listen("tcp", host + ":" + IntToStr(port))
+	listener, err := net.Listen("tcp", host+":"+IntToStr(port))
 	if err != nil {
 		log.Fatal(4, FormatLog(fmt.Sprintf("Fail to start SSH server: %v", err)))
 	}
@@ -124,8 +122,6 @@ func serve(config *ssh.ServerConfig, host string, port int, log *log.Logger) {
 		}()
 	}
 }
-
-
 
 func handleServerConn(keyID string, chans <-chan ssh.NewChannel) {
 	for newChan := range chans {
