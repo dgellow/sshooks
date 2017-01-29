@@ -1,4 +1,4 @@
-package: github.com/qrclabs/go-ssh-server
+package: github.com/qrclabs/go-ssh-git
 import:
 - package: golang.org/x/crypto
   subpackages:
