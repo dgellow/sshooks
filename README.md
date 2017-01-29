@@ -1,20 +1,18 @@
-[![Build Status](https://travis-ci.org/QRCLabs/go-ssh-git.svg?branch=master)](https://travis-ci.org/QRCLabs/go-ssh-git)
-[![Coverage Status](https://coveralls.io/repos/github/QRCLabs/go-ssh-git/badge.svg?branch=master)](https://coveralls.io/github/QRCLabs/go-ssh-git?branch=master) [![Go Report Card](https://goreportcard.com/badge/github.com/qrclabs/go-ssh-git)](https://goreportcard.com/report/github.com/qrclabs/go-ssh-git)
+[![Build Status](https://travis-ci.org/QRCLabs/sshgit.svg?branch=master)](https://travis-ci.org/QRCLabs/sshgit)
+[![Coverage Status](https://coveralls.io/repos/github/QRCLabs/sshgit/badge.svg?branch=master)](https://coveralls.io/github/QRCLabs/sshgit?branch=master) [![Go Report Card](https://goreportcard.com/badge/github.com/qrclabs/sshgit)](https://goreportcard.com/report/github.com/qrclabs/sshgit)
 
 # Handle git requests sent via a SSH connection
 
-
-Initially based on [gogs's ssh](https://github.com/gogits/gogs/blob/master/modules/ssh/ssh.go) package.
-
-## Build and run default server
+## Build and run example
 
 ```
-$ go build
-$ ./go-ssh-server
+$ cd example
+$ make build
+$ ./example
 ```
 
 ## Run tests
 
 ```
-$ go test ./sshgit
+$ go test ./...
 ```

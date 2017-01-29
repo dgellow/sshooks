@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/gogits/gogs/modules/log"
-	"github.com/qrclabs/go-ssh-git/sshgit"
+	"github.com/qrclabs/sshgit"
 	"golang.org/x/crypto/ssh"
 )
 

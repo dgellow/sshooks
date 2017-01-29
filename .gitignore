@@ -2,6 +2,5 @@
 dist/
 .DS_Store
 vendor
-go-ssh-server
 example/example
 example/*.rsa*
