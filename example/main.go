@@ -72,10 +72,10 @@ func main() {
 
 	fmt.Println("Start program")
 
-	commandsHandlers := map[string]func (string) error {
-		"git-upload-pack": handleUploadPack,
+	commandsHandlers := map[string]func(string) error{
+		"git-upload-pack":    handleUploadPack,
 		"git-upload-archive": handleUploadArchive,
-		"git-receive-pack": handleReceivePack,
+		"git-receive-pack":   handleReceivePack,
 	}
 
 	config := &sshooks.ServerConfig{
