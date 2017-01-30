@@ -7,9 +7,12 @@ import (
 	"os"
 	"strings"
 
-	"github.com/gogits/gogs/modules/log"
 	"github.com/qrclabs/sshooks"
 	"golang.org/x/crypto/ssh"
+)
+
+var (
+	logger *Logger
 )
 
 func checkPubKey(key ssh.PublicKey) (*ssh.PublicKey, error) {
@@ -18,7 +21,7 @@ func checkPubKey(key ssh.PublicKey) (*ssh.PublicKey, error) {
 	filename := "authorized_keys.txt"
 	file, err := os.Open(filename)
 	if err != nil {
-		log.Fatal(4, "Cannot open file: %s, error: %v", filename, err)
+		logger.Fatal("Cannot open file: %s, error: %v", filename, err)
 	}
 	defer file.Close()
 
@@ -36,7 +39,7 @@ func checkPubKey(key ssh.PublicKey) (*ssh.PublicKey, error) {
 		}
 	}
 	if err := scanner.Err(); err != nil {
-		log.Fatal(4, "Error while reading file: %s, error: %v", file, err)
+		logger.Fatal("Error while reading file: %s, error: %v", file, err)
 	}
 
 	fmt.Println("found nothing :(")
@@ -46,29 +49,29 @@ func checkPubKey(key ssh.PublicKey) (*ssh.PublicKey, error) {
 func publicKeyHandler(conn ssh.ConnMetadata, key ssh.PublicKey) (*ssh.Permissions, error) {
 	_, err := checkPubKey(key)
 	if err != nil {
-		log.Error(3, "Cannot find key: %v", err)
+		logger.Error("Cannot find key: %v", err)
 		return nil, err
 	}
 	return &ssh.Permissions{}, nil
 }
 
 func handleUploadPack(args string) error {
-	log.Trace("Handle git-upload-pack: args: %s", args)
+	logger.Trace("Handle git-upload-pack: args: %s", args)
 	return nil
 }
 
 func handleUploadArchive(args string) error {
-	log.Trace("Handle git-upload-archive: args: %s", args)
+	logger.Trace("Handle git-upload-archive: args: %s", args)
 	return nil
 }
 
 func handleReceivePack(args string) error {
-	log.Trace("Handle git-receive-pack: args: %s", args)
+	logger.Trace("Handle git-receive-pack: args: %s", args)
 	return nil
 }
 
 func main() {
-	log.NewLogger(0, "console", `{"level": 0}`)
+	logger = &Logger{LogLevel: 0, Prefix: "example"}
 
 	fmt.Println("Start program")
 
@@ -85,6 +88,7 @@ func main() {
 		KeygenConfig:      sshooks.SSHKeygenConfig{"rsa", ""},
 		PublicKeyCallback: publicKeyHandler,
 		CommandsCallbacks: commandsHandlers,
+		Log:               logger,
 	}
 
 	fmt.Println("Run server")

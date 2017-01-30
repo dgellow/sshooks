@@ -28,6 +28,8 @@ type ServerConfig struct {
 	PublicKeyCallback func(conn ssh.ConnMetadata, key ssh.PublicKey) (*ssh.Permissions, error)
 	KeygenConfig      SSHKeygenConfig
 	CommandsCallbacks map[string]func(args string) error
+    // Logger based on the interface defined in sshooks/log
+ 	Log               log.Log
 }
 ```
 
@@ -53,6 +55,8 @@ func handleUploadPack(args string) error {
 }
 
 func main() {
+	logger = &Logger{LogLevel: 0, Prefix: "example"}
+
 	commandsHandlers := map[string]func (string) error {
 		"git-upload-pack": handleUploadPack,
 	}
@@ -64,6 +68,7 @@ func main() {
 		KeygenConfig:      sshooks.SSHKeygenConfig{"rsa", ""},
 		PublicKeyCallback: publicKeyHandler,
 		CommandsCallbacks: commandsHandlers,
+        Log:               logger,
 	}
 
 	sshooks.Listen(config)
