@@ -2,18 +2,74 @@
 [![Coverage Status](https://coveralls.io/repos/github/QRCLabs/sshgit/badge.svg?branch=master)](https://coveralls.io/github/QRCLabs/sshgit?branch=master)
 [![Go Report Card](https://goreportcard.com/badge/github.com/qrclabs/sshgit)](https://goreportcard.com/report/github.com/qrclabs/sshgit)
 
-# Handle git requests sent via a SSH connection
+# sshgit - React to ssh commands
 
-## Build and run example
+## API
 
+### struct `SSHKeygenConfig`
+
+```go
+type SSHKeygenConfig struct {
+	// Default to rsa
+	Type string
+	// Default to no password (empty string)
+	Passphrase string
+}
 ```
-$ cd example
-$ make build
-$ ./example
+
+### struct `ServerConfig`
+
+```go
+type ServerConfig struct {
+	// Default to localhost
+	Host              string
+	Port              uint
+	PrivatekeyPath    string
+	PublicKeyCallback func(conn ssh.ConnMetadata, key ssh.PublicKey) (*ssh.Permissions, error)
+	KeygenConfig      SSHKeygenConfig
+	CommandsCallbacks map[string]func(args string) error
+}
 ```
 
-## Run tests
+### func `Listen`
 
+```go
+func Listen(config *ServerConfig)
 ```
-$ go test ./...
+
+## Example
+
+In this example we setup a server responding to the command `git-upload-pack` commands (e.g: sent by `git clone ssh://git@localhost:1337/QRCLabs/nanogit.git`). You can read the [example program](https://github.com/QRCLabs/sshgit/blob/master/example/main.go) for more details.
+
+```go
+func publicKeyHandler(conn ssh.ConnMetadata, key ssh.PublicKey) (*ssh.Permissions, error) {
+    // Do something with the public key
+	return &ssh.Permissions{}, nil
+}
+
+func handleUploadPack(args string) error {
+    // Do something with the args
+	return nil
+}
+
+func main() {
+	commandsHandlers := map[string]func (string) error {
+		"git-upload-pack": handleUploadPack,
+	}
+
+	config := &sshgit.ServerConfig{
+		Host:              "localhost",
+		Port:              1337,
+		PrivatekeyPath:    "key.rsa",
+		KeygenConfig:      sshgit.SSHKeygenConfig{"rsa", ""},
+		PublicKeyCallback: publicKeyHandler,
+		CommandsCallbacks: commandsHandlers,
+	}
+
+	sshgit.Listen(config)
+
+	// Keep the program running
+	for {
+	}
+}
 ```
