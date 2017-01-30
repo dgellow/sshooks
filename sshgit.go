@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"net"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 
@@ -35,10 +34,11 @@ type ServerConfig struct {
 	PrivatekeyPath    string
 	PublicKeyCallback func(conn ssh.ConnMetadata, key ssh.PublicKey) (*ssh.Permissions, error)
 	KeygenConfig      SSHKeygenConfig
+	CommandsCallbacks map[string]func(args string) error
 }
 
 // Starts an SSH server on given port
-func Listen(config ServerConfig) {
+func Listen(config *ServerConfig) {
 	if config.PublicKeyCallback == nil {
 		log.Fatal(4, FormatLog("PublicKeyCallback cannot be nil"))
 	}
@@ -81,11 +81,11 @@ func Listen(config ServerConfig) {
 		host = "localhost"
 	}
 
-	go serve(sshConfig, host, config.Port)
+	go serve(config, sshConfig, host, config.Port)
 }
 
 // Actual server
-func serve(config *ssh.ServerConfig, host string, port uint) {
+func serve(config *ServerConfig, sshConfig *ssh.ServerConfig, host string, port uint) {
 	// Listen on given host and port
 	listener, err := net.Listen("tcp", host+":"+UIntToStr(port))
 	if err != nil {
@@ -107,7 +107,7 @@ func serve(config *ssh.ServerConfig, host string, port uint) {
 		// be asked to trust server key fingerprint and hangs.
 		go func() {
 			log.Warn(FormatLog("Handshaking was terminated: %v"), err)
-			sConn, channels, reqs, err := ssh.NewServerConn(conn, config)
+			sConn, channels, reqs, err := ssh.NewServerConn(conn, sshConfig)
 			if err != nil {
 				if err == io.EOF {
 					log.Warn(FormatLog(fmt.Sprintf("Handshaking was terminated: %v", err)))
@@ -119,7 +119,7 @@ func serve(config *ssh.ServerConfig, host string, port uint) {
 
 			log.Trace(FormatLog(fmt.Sprintf("Connection from %s (%s)", sConn.RemoteAddr(), sConn.ClientVersion())))
 			go ssh.DiscardRequests(reqs)
-			go handleServerConn(sConn.Permissions.Extensions["key-id"], channels)
+			go handleServerConn(config, sConn.Permissions.Extensions["key-id"], channels)
 		}()
 	}
 }
@@ -133,7 +133,7 @@ func cleanCommand(cmd string) string {
 	return cmd[i:]
 }
 
-func handleServerConn(keyID string, chans <-chan ssh.NewChannel) {
+func handleServerConn(config *ServerConfig, keyID string, chans <-chan ssh.NewChannel) {
 	fmt.Println("Handle server connection")
 
 	// Loop on channels
@@ -174,50 +174,14 @@ func handleServerConn(keyID string, chans <-chan ssh.NewChannel) {
 						return
 					}
 				case "exec":
-					cmdName := strings.TrimLeft(payload, "'()")
-					log.Trace(FormatLog("Cleaned payload: %v"), cmdName)
-
-					// Arguments for the `gogs serv` command
-					// args := []string{"serv", "key-" + keyID, "--config=" + setting.CustomConf}
-
-					// Call the program used to handle git actions
-					args := []string{""}
-					command := "ls"
-					cmd := exec.Command(command, args...)
-					cmd.Env = append(os.Environ(), "SSH_ORIGINAL_COMMAND="+cmdName)
-
-					stdout, err := cmd.StdoutPipe()
+					cmd := strings.TrimLeft(payload, "'()")
+					log.Trace(FormatLog("Cleaned payload: %v"), cmd)
+					err := handleCommand(config, cmd)
 					if err != nil {
-						log.Error(3, FormatLog("Error when reading command stdout: %v"), err)
-						return
-					}
-					stderr, err := cmd.StderrPipe()
-					if err != nil {
-						log.Error(3, FormatLog("Error when reading command stderr: %v"), err)
-						return
-					}
-					input, err := cmd.StdinPipe()
-					if err != nil {
-						log.Error(3, FormatLog("Error when reading command stdin: %v"), err)
-						return
-					}
-
-					if err = cmd.Start(); err != nil {
-						log.Error(3, FormatLog("Error when starting the command: %v"), err)
-						return
+						log.Error(3, "Error in command handler: cmd: %s, error: %v", cmd, err)
 					}
 
 					req.Reply(true, nil)
-					go io.Copy(input, ch)
-					io.Copy(ch, stdout)
-					io.Copy(ch.Stderr(), stderr)
-
-					err = cmd.Wait()
-					if err != nil {
-						log.Error(3, FormatLog("Error during the command call: %v"), err)
-						return
-					}
-
 					ch.SendRequest("exit-status", false, []byte{0, 0, 0, 0})
 					return
 				default:
@@ -228,4 +192,22 @@ func handleServerConn(keyID string, chans <-chan ssh.NewChannel) {
 			}
 		}(reqs)
 	}
+}
+
+func parseCommand(cmd string) (exec string, args string) {
+	ss := strings.SplitN(cmd, " ", 2)
+	if len(ss) != 2 {
+		return "", ""
+	}
+	return ss[0], strings.Replace(ss[1], "'/", "'", 1)
+}
+
+func handleCommand(config *ServerConfig, cmd string) error {
+	exec, args := parseCommand(cmd)
+	cmdHandler, present := config.CommandsCallbacks[exec]
+	if !present {
+		log.Trace("No handler for command: %s, args: %v", exec, args)
+		return nil
+	}
+	return cmdHandler(args)
 }

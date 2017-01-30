@@ -52,15 +52,39 @@ func publicKeyHandler(conn ssh.ConnMetadata, key ssh.PublicKey) (*ssh.Permission
 	return &ssh.Permissions{}, nil
 }
 
+func handleUploadPack(args string) error {
+	log.Trace("Handle git-upload-pack: args: %s", args)
+	return nil
+}
+
+func handleUploadArchive(args string) error {
+	log.Trace("Handle git-upload-archive: args: %s", args)
+	return nil
+}
+
+func handleReceivePack(args string) error {
+	log.Trace("Handle git-receive-pack: args: %s", args)
+	return nil
+}
+
 func main() {
+	log.NewLogger(0, "console", `{"level": 0}`)
+
 	fmt.Println("Start program")
 
-	config := sshgit.ServerConfig{
+	commandsHandlers := map[string]func (string) error {
+		"git-upload-pack": handleUploadPack,
+		"git-upload-archive": handleUploadArchive,
+		"git-receive-pack": handleReceivePack,
+	}
+
+	config := &sshgit.ServerConfig{
 		Host:              "localhost",
 		Port:              1337,
 		PrivatekeyPath:    "key.rsa",
 		KeygenConfig:      sshgit.SSHKeygenConfig{"rsa", ""},
 		PublicKeyCallback: publicKeyHandler,
+		CommandsCallbacks: commandsHandlers,
 	}
 
 	fmt.Println("Run server")
