@@ -8,15 +8,9 @@ go:
   - 1.7.x
   - master
 
-before_install:
-  - sudo add-apt-repository ppa:masterminds/glide -y
-  - sudo apt-get update -q
-  - sudo apt-get install glide -y
-
 install:
   - go get golang.org/x/tools/cmd/cover
   - go get github.com/mattn/goveralls
-  - glide install
 
 script:
   - go test -v -covermode=count -coverprofile=coverage.out
