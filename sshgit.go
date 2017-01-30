@@ -21,8 +21,6 @@ func FormatLog(s string) string {
 	return fmt.Sprintf("%s: %s", packageName, s)
 }
 
-type PubKeyHandler func(conn ssh.ConnMetadata, key ssh.PublicKey) (*ssh.Permissions, error)
-
 type SSHKeygenConfig struct {
 	// Default to rsa
 	Type string
@@ -35,7 +33,7 @@ type ServerConfig struct {
 	Host              string
 	Port              uint
 	PrivatekeyPath    string
-	PublicKeyCallback PubKeyHandler
+	PublicKeyCallback func(conn ssh.ConnMetadata, key ssh.PublicKey) (*ssh.Permissions, error)
 	KeygenConfig      SSHKeygenConfig
 }
 
