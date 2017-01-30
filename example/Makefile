@@ -1,7 +1,7 @@
 .DEFAULT_GOAL := build
 
 build:
-	go get -u github.com/qrclabs/sshgit
+	go get -u github.com/qrclabs/sshooks
 	go build
 
 clean:

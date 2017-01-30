@@ -1,8 +1,8 @@
-[![Build Status](https://travis-ci.org/QRCLabs/sshgit.svg?branch=master)](https://travis-ci.org/QRCLabs/sshgit)
-[![Coverage Status](https://coveralls.io/repos/github/QRCLabs/sshgit/badge.svg?branch=master)](https://coveralls.io/github/QRCLabs/sshgit?branch=master)
-[![Go Report Card](https://goreportcard.com/badge/github.com/qrclabs/sshgit)](https://goreportcard.com/report/github.com/qrclabs/sshgit)
+[![Build Status](https://travis-ci.org/QRCLabs/sshooks.svg?branch=master)](https://travis-ci.org/QRCLabs/sshooks)
+[![Coverage Status](https://coveralls.io/repos/github/QRCLabs/sshooks/badge.svg?branch=master)](https://coveralls.io/github/QRCLabs/sshooks?branch=master)
+[![Go Report Card](https://goreportcard.com/badge/github.com/qrclabs/sshooks)](https://goreportcard.com/report/github.com/qrclabs/sshooks)
 
-# sshgit - React to ssh commands
+# sshooks - React to ssh commands
 
 ## API
 
@@ -39,7 +39,7 @@ func Listen(config *ServerConfig)
 
 ## Example
 
-In this example we setup a server responding to the command `git-upload-pack` commands (e.g: sent by `git clone ssh://git@localhost:1337/QRCLabs/nanogit.git`). You can read the [example program](https://github.com/QRCLabs/sshgit/blob/master/example/main.go) for more details.
+In this example we setup a server responding to the command `git-upload-pack` commands (e.g: sent by `git clone ssh://git@localhost:1337/QRCLabs/nanogit.git`). You can read the [example program](https://github.com/QRCLabs/sshooks/blob/master/example/main.go) for more details.
 
 ```go
 func publicKeyHandler(conn ssh.ConnMetadata, key ssh.PublicKey) (*ssh.Permissions, error) {
@@ -57,16 +57,16 @@ func main() {
 		"git-upload-pack": handleUploadPack,
 	}
 
-	config := &sshgit.ServerConfig{
+	config := &sshooks.ServerConfig{
 		Host:              "localhost",
 		Port:              1337,
 		PrivatekeyPath:    "key.rsa",
-		KeygenConfig:      sshgit.SSHKeygenConfig{"rsa", ""},
+		KeygenConfig:      sshooks.SSHKeygenConfig{"rsa", ""},
 		PublicKeyCallback: publicKeyHandler,
 		CommandsCallbacks: commandsHandlers,
 	}
 
-	sshgit.Listen(config)
+	sshooks.Listen(config)
 
 	// Keep the program running
 	for {

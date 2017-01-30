@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/gogits/gogs/modules/log"
-	"github.com/qrclabs/sshgit"
+	"github.com/qrclabs/sshooks"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -78,17 +78,17 @@ func main() {
 		"git-receive-pack": handleReceivePack,
 	}
 
-	config := &sshgit.ServerConfig{
+	config := &sshooks.ServerConfig{
 		Host:              "localhost",
 		Port:              1337,
 		PrivatekeyPath:    "key.rsa",
-		KeygenConfig:      sshgit.SSHKeygenConfig{"rsa", ""},
+		KeygenConfig:      sshooks.SSHKeygenConfig{"rsa", ""},
 		PublicKeyCallback: publicKeyHandler,
 		CommandsCallbacks: commandsHandlers,
 	}
 
 	fmt.Println("Run server")
-	sshgit.Listen(config)
+	sshooks.Listen(config)
 
 	// Keep the program running
 	for {

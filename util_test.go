@@ -1,4 +1,4 @@
-package sshgit
+package sshooks
 
 import (
 	"io/ioutil"
