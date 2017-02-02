@@ -4,8 +4,8 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
-	"io"
 	"os"
+	"os/exec"
 	"strings"
 
 	"github.com/qrclabs/sshooks"
@@ -56,41 +56,20 @@ func publicKeyHandler(conn ssh.ConnMetadata, key ssh.PublicKey) (keyId string, e
 	return keyId, nil
 }
 
-type dummyWriteClose struct {
-}
-
-func (dwc *dummyWriteClose) Write(p []byte) (n int, err error) {
-	return 0, nil
-}
-
-func (dwc *dummyWriteClose) Close() error {
-	return nil
-}
-
-type dummyReadCloser struct {
-}
-
-func (drc *dummyReadCloser) Read(p []byte) (n int, err error) {
-	return 0, nil
-}
-
-func (drc *dummyReadCloser) Close() error {
-	return nil
-}
-
-func handleUploadPack(keyId string, cmd string, args string) (io.WriteCloser, io.ReadCloser, io.ReadCloser, error) {
+func handleUploadPack(keyId string, cmd string, args string) (*exec.Cmd, error) {
 	logger.Trace("Handle git-upload-pack: cmd: %s, args: %s, keyId: %s", cmd, args, keyId)
-	return &dummyWriteClose{}, &dummyReadCloser{}, &dummyReadCloser{}, nil
+	command := exec.Command("git-upload-pack", "repo1.git")
+	return command, nil
 }
 
-func handleUploadArchive(keyId string, cmd string, args string) (io.WriteCloser, io.ReadCloser, io.ReadCloser, error) {
+func handleUploadArchive(keyId string, cmd string, args string) (*exec.Cmd, error) {
 	logger.Trace("Handle git-upload-archive: cmd: %s, args: %s, keyId: %s", cmd, args, keyId)
-	return &dummyWriteClose{}, &dummyReadCloser{}, &dummyReadCloser{}, nil
+	return nil, nil
 }
 
-func handleReceivePack(keyId string, cmd string, args string) (io.WriteCloser, io.ReadCloser, io.ReadCloser, error) {
+func handleReceivePack(keyId string, cmd string, args string) (*exec.Cmd, error) {
 	logger.Trace("Handle git-receive-pack: cmd: %s, args: %s, keyId: %s", cmd, args, keyId)
-	return &dummyWriteClose{}, &dummyReadCloser{}, &dummyReadCloser{}, nil
+	return exec.Command("ls"), nil
 }
 
 func main() {
@@ -98,7 +77,7 @@ func main() {
 
 	fmt.Println("Start program")
 
-	commandsHandlers := map[string]func(string, string, string) (io.WriteCloser, io.ReadCloser, io.ReadCloser, error){
+	commandsHandlers := map[string]func(string, string, string) (*exec.Cmd, error){
 		"git-upload-pack":    handleUploadPack,
 		"git-upload-archive": handleUploadArchive,
 		"git-receive-pack":   handleReceivePack,

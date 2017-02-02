@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"net"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 
@@ -33,7 +34,7 @@ type ServerConfig struct {
 	PrivatekeyPath    string
 	PublicKeyCallback func(conn ssh.ConnMetadata, key ssh.PublicKey) (keyId string, err error)
 	KeygenConfig      SSHKeygenConfig
-	CommandsCallbacks map[string]func(keyId string, cmd string, args string) (input io.WriteCloser, stdout io.ReadCloser, stderr io.ReadCloser, err error)
+	CommandsCallbacks map[string]func(keyId string, cmd string, args string) (*exec.Cmd, error)
 	// Logger based on the interface defined in sshooks/log
 	Log log.Log
 }
@@ -179,15 +180,42 @@ func handleServerConn(config *ServerConfig, keyId string, chans <-chan ssh.NewCh
 						return
 					}
 				case "exec":
-					cmd := strings.TrimLeft(payload, "'()")
-					config.Log.Trace(formatLog("Cleaned payload: %v"), cmd)
-					input, stdout, stderr, err := handleCommand(config, keyId, cmd)
+					cmdName := strings.TrimLeft(payload, "'()")
+					config.Log.Trace(formatLog("Cleaned payload: %v"), cmdName)
+					cmd, err := handleCommand(config, keyId, cmdName)
+					if cmd == nil {
+						config.Log.Trace("Cmd object returned by handleCommand is nil")
+						return
+					}
 					if err != nil {
-						config.Log.Error("Error in command handler: cmd: %s, error: %v", cmd, err)
+						config.Log.Error("Error in command handler: cmd: %s, error: %v", cmdName, err)
+						return
+					}
+
+					stdout, err := cmd.StdoutPipe()
+					if err != nil {
+						config.Log.Error("Error when reading stdout: %v", err)
+						return
+					}
+					stderr, err := cmd.StderrPipe()
+					if err != nil {
+						config.Log.Error("Error when reading stderr: %v", err)
+						return
+					}
+					stdin, err := cmd.StdinPipe()
+					if err != nil {
+						config.Log.Error("Error when reading stdin: %v", err)
+						return
+					}
+
+					// FIXME: check timeout
+					if err = cmd.Start(); err != nil {
+						config.Log.Error("Error when starting command: %v", err)
+						return
 					}
 
 					req.Reply(true, nil)
-					go io.Copy(input, ch)
+					go io.Copy(stdin, ch)
 					io.Copy(ch, stdout)
 					io.Copy(ch.Stderr(), stderr)
 
@@ -209,34 +237,12 @@ func parseCommand(cmd string) (exec string, args string) {
 	return ss[0], strings.Replace(ss[1], "'/", "'", 1)
 }
 
-func handleCommand(config *ServerConfig, keyId string, cmd string) (input io.WriteCloser, stdout io.ReadCloser, stderr io.ReadCloser, err error) {
-	exec, args := parseCommand(cmd)
-	cmdHandler, present := config.CommandsCallbacks[exec]
+func handleCommand(config *ServerConfig, keyId string, cmdName string) (*exec.Cmd, error) {
+	execName, args := parseCommand(cmdName)
+	cmdHandler, present := config.CommandsCallbacks[execName]
 	if !present {
-		config.Log.Trace(formatLog("No handler for command: %s, args: %v"), exec, args)
-		return &dummyWriteClose{}, &dummyReadCloser{}, &dummyReadCloser{}, nil
+		config.Log.Trace(formatLog("No handler for command: %s, args: %v"), execName, args)
+		return exec.Command(""), nil
 	}
-	return cmdHandler(keyId, cmd, args)
-}
-
-type dummyWriteClose struct {
-}
-
-func (dwc *dummyWriteClose) Write(p []byte) (n int, err error) {
-	return 0, nil
-}
-
-func (dwc *dummyWriteClose) Close() error {
-	return nil
-}
-
-type dummyReadCloser struct {
-}
-
-func (drc *dummyReadCloser) Read(p []byte) (n int, err error) {
-	return 0, nil
-}
-
-func (drc *dummyReadCloser) Close() error {
-	return nil
+	return cmdHandler(keyId, cmdName, args)
 }
