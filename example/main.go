@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"strings"
 
@@ -55,19 +56,41 @@ func publicKeyHandler(conn ssh.ConnMetadata, key ssh.PublicKey) (keyId string, e
 	return keyId, nil
 }
 
-func handleUploadPack(keyId string, cmd string, args string) error {
+type dummyWriteClose struct {
+}
+
+func (dwc *dummyWriteClose) Write(p []byte) (n int, err error) {
+	return 0, nil
+}
+
+func (dwc *dummyWriteClose) Close() error {
+	return nil
+}
+
+type dummyReadCloser struct {
+}
+
+func (drc *dummyReadCloser) Read(p []byte) (n int, err error) {
+	return 0, nil
+}
+
+func (drc *dummyReadCloser) Close() error {
+	return nil
+}
+
+func handleUploadPack(keyId string, cmd string, args string) (io.WriteCloser, io.ReadCloser, io.ReadCloser, error) {
 	logger.Trace("Handle git-upload-pack: cmd: %s, args: %s, keyId: %s", cmd, args, keyId)
-	return nil
+	return &dummyWriteClose{}, &dummyReadCloser{}, &dummyReadCloser{}, nil
 }
 
-func handleUploadArchive(keyId string, cmd string, args string) error {
+func handleUploadArchive(keyId string, cmd string, args string) (io.WriteCloser, io.ReadCloser, io.ReadCloser, error) {
 	logger.Trace("Handle git-upload-archive: cmd: %s, args: %s, keyId: %s", cmd, args, keyId)
-	return nil
+	return &dummyWriteClose{}, &dummyReadCloser{}, &dummyReadCloser{}, nil
 }
 
-func handleReceivePack(keyId string, cmd string, args string) error {
+func handleReceivePack(keyId string, cmd string, args string) (io.WriteCloser, io.ReadCloser, io.ReadCloser, error) {
 	logger.Trace("Handle git-receive-pack: cmd: %s, args: %s, keyId: %s", cmd, args, keyId)
-	return nil
+	return &dummyWriteClose{}, &dummyReadCloser{}, &dummyReadCloser{}, nil
 }
 
 func main() {
@@ -75,7 +98,7 @@ func main() {
 
 	fmt.Println("Start program")
 
-	commandsHandlers := map[string]func(string, string, string) error{
+	commandsHandlers := map[string]func(string, string, string) (io.WriteCloser, io.ReadCloser, io.ReadCloser, error){
 		"git-upload-pack":    handleUploadPack,
 		"git-upload-archive": handleUploadArchive,
 		"git-receive-pack":   handleReceivePack,
