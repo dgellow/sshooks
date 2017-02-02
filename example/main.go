@@ -15,7 +15,7 @@ var (
 	logger *Logger
 )
 
-func checkPubKey(key ssh.PublicKey) (*ssh.PublicKey, error) {
+func checkPubKey(key ssh.PublicKey) (string, error) {
 	keystr := strings.TrimSpace(string(ssh.MarshalAuthorizedKey(key)))
 
 	filename := "authorized_keys.txt"
@@ -35,7 +35,7 @@ func checkPubKey(key ssh.PublicKey) (*ssh.PublicKey, error) {
 
 		if line == keystr {
 			fmt.Println("found key!")
-			return &key, nil
+			return keystr, nil
 		}
 	}
 	if err := scanner.Err(); err != nil {
@@ -43,30 +43,30 @@ func checkPubKey(key ssh.PublicKey) (*ssh.PublicKey, error) {
 	}
 
 	fmt.Println("found nothing :(")
-	return nil, errors.New("key not found")
+	return keystr, errors.New("key not found")
 }
 
-func publicKeyHandler(conn ssh.ConnMetadata, key ssh.PublicKey) (*ssh.Permissions, error) {
-	_, err := checkPubKey(key)
+func publicKeyHandler(conn ssh.ConnMetadata, key ssh.PublicKey) (keyId string, err error) {
+	keyId, err = checkPubKey(key)
 	if err != nil {
 		logger.Error("Cannot find key: %v", err)
-		return nil, err
+		return "", err
 	}
-	return &ssh.Permissions{}, nil
+	return keyId, nil
 }
 
-func handleUploadPack(args string) error {
-	logger.Trace("Handle git-upload-pack: args: %s", args)
+func handleUploadPack(keyId string, cmd string, args string) error {
+	logger.Trace("Handle git-upload-pack: cmd: %s, args: %s, keyId: %s", cmd, args, keyId)
 	return nil
 }
 
-func handleUploadArchive(args string) error {
-	logger.Trace("Handle git-upload-archive: args: %s", args)
+func handleUploadArchive(keyId string, cmd string, args string) error {
+	logger.Trace("Handle git-upload-archive: cmd: %s, args: %s, keyId: %s", cmd, args, keyId)
 	return nil
 }
 
-func handleReceivePack(args string) error {
-	logger.Trace("Handle git-receive-pack: args: %s", args)
+func handleReceivePack(keyId string, cmd string, args string) error {
+	logger.Trace("Handle git-receive-pack: cmd: %s, args: %s, keyId: %s", cmd, args, keyId)
 	return nil
 }
 
@@ -75,7 +75,7 @@ func main() {
 
 	fmt.Println("Start program")
 
-	commandsHandlers := map[string]func(string) error{
+	commandsHandlers := map[string]func(string, string, string) error{
 		"git-upload-pack":    handleUploadPack,
 		"git-upload-archive": handleUploadArchive,
 		"git-receive-pack":   handleReceivePack,

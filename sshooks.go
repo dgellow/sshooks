@@ -31,9 +31,9 @@ type ServerConfig struct {
 	Host              string
 	Port              uint
 	PrivatekeyPath    string
-	PublicKeyCallback func(conn ssh.ConnMetadata, key ssh.PublicKey) (*ssh.Permissions, error)
+	PublicKeyCallback func(conn ssh.ConnMetadata, key ssh.PublicKey) (keyId string, err error)
 	KeygenConfig      SSHKeygenConfig
-	CommandsCallbacks map[string]func(args string) error
+	CommandsCallbacks map[string]func(keyId string, cmd string, args string) error
 	// Logger based on the interface defined in sshooks/log
  	Log               log.Log
 }
@@ -50,7 +50,15 @@ func Listen(config *ServerConfig) {
 		config.KeygenConfig.Passphrase = "rsa"
 	}
 
-	sshConfig := &ssh.ServerConfig{PublicKeyCallback: config.PublicKeyCallback}
+	sshConfig := &ssh.ServerConfig{
+		PublicKeyCallback: func(conn ssh.ConnMetadata, key ssh.PublicKey) (*ssh.Permissions, error) {
+			keyId, err := config.PublicKeyCallback(conn, key)
+			if err != nil {
+				config.Log.Error("Error while handling public key: %v", err)
+			}
+			return &ssh.Permissions{Extensions: map[string]string{"key-id": keyId}}, nil
+		},
+	}
 	keyPath := config.PrivatekeyPath
 	if !FileExists(keyPath) {
 		os.MkdirAll(filepath.Dir(keyPath), os.ModePerm)
@@ -134,7 +142,7 @@ func cleanCommand(cmd string) string {
 	return cmd[i:]
 }
 
-func handleServerConn(config *ServerConfig, keyID string, chans <-chan ssh.NewChannel) {
+func handleServerConn(config *ServerConfig, keyId string, chans <-chan ssh.NewChannel) {
 	fmt.Println("Handle server connection")
 
 	// Loop on channels
@@ -177,7 +185,7 @@ func handleServerConn(config *ServerConfig, keyID string, chans <-chan ssh.NewCh
 				case "exec":
 					cmd := strings.TrimLeft(payload, "'()")
 					config.Log.Trace(formatLog("Cleaned payload: %v"), cmd)
-					err := handleCommand(config, cmd)
+					err := handleCommand(config, keyId, cmd)
 					if err != nil {
 						config.Log.Error("Error in command handler: cmd: %s, error: %v", cmd, err)
 					}
@@ -203,12 +211,12 @@ func parseCommand(cmd string) (exec string, args string) {
 	return ss[0], strings.Replace(ss[1], "'/", "'", 1)
 }
 
-func handleCommand(config *ServerConfig, cmd string) error {
+func handleCommand(config *ServerConfig, keyId string, cmd string) error {
 	exec, args := parseCommand(cmd)
 	cmdHandler, present := config.CommandsCallbacks[exec]
 	if !present {
 		config.Log.Trace("No handler for command: %s, args: %v", exec, args)
 		return nil
 	}
-	return cmdHandler(args)
+	return cmdHandler(keyId, cmd, args)
 }
