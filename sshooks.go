@@ -9,8 +9,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"golang.org/x/crypto/ssh"
 	"github.com/qrclabs/sshooks/log"
+	"golang.org/x/crypto/ssh"
 )
 
 var packageName = "sshooks"
@@ -35,7 +35,7 @@ type ServerConfig struct {
 	KeygenConfig      SSHKeygenConfig
 	CommandsCallbacks map[string]func(keyId string, cmd string, args string) error
 	// Logger based on the interface defined in sshooks/log
- 	Log               log.Log
+	Log log.Log
 }
 
 // Starts an SSH server on given port

@@ -8,11 +8,11 @@ import (
 
 type Logger struct {
 	LogLevel int
-	Prefix string
+	Prefix   string
 }
 
 const (
-	TRACE=iota
+	TRACE = iota
 	DEBUG
 	INFO
 	WARN
