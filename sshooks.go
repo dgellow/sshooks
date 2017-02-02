@@ -54,7 +54,7 @@ func Listen(config *ServerConfig) {
 		PublicKeyCallback: func(conn ssh.ConnMetadata, key ssh.PublicKey) (*ssh.Permissions, error) {
 			keyId, err := config.PublicKeyCallback(conn, key)
 			if err != nil {
-				config.Log.Error("Error while handling public key: %v", err)
+				config.Log.Error(formatLog("Error while handling public key: %v"), err)
 			}
 			return &ssh.Permissions{Extensions: map[string]string{"key-id": keyId}}, nil
 		},
@@ -126,7 +126,7 @@ func serve(config *ServerConfig, sshConfig *ssh.ServerConfig, host string, port 
 				return
 			}
 
-			config.Log.Trace(formatLog(fmt.Sprintf("Connection from %s (%s)", sConn.RemoteAddr(), sConn.ClientVersion())))
+			config.Log.Trace(formatLog("Connection from %s (%s)"), sConn.RemoteAddr(), sConn.ClientVersion())
 			go ssh.DiscardRequests(reqs)
 			go handleServerConn(config, sConn.Permissions.Extensions["key-id"], channels)
 		}()
@@ -143,7 +143,7 @@ func cleanCommand(cmd string) string {
 }
 
 func handleServerConn(config *ServerConfig, keyId string, chans <-chan ssh.NewChannel) {
-	fmt.Println("Handle server connection")
+	config.Log.Trace(formatLog("Handle server connection"))
 
 	// Loop on channels
 	for newChan := range chans {
@@ -162,11 +162,7 @@ func handleServerConn(config *ServerConfig, keyId string, chans <-chan ssh.NewCh
 			defer ch.Close()
 
 			for req := range in {
-				fmt.Println("Request")
-				fmt.Printf("req.Type: %v\n", req.Type)
-				fmt.Printf("req.Payload: %s\n", req.Payload)
-				fmt.Println("")
-
+				config.Log.Trace(formatLog("Request: %v"), req)
 				payload := cleanCommand(string(req.Payload))
 				switch req.Type {
 				case "env":
@@ -196,8 +192,6 @@ func handleServerConn(config *ServerConfig, keyId string, chans <-chan ssh.NewCh
 				default:
 				}
 
-				fmt.Println("")
-				fmt.Println("")
 			}
 		}(reqs)
 	}
@@ -215,7 +209,7 @@ func handleCommand(config *ServerConfig, keyId string, cmd string) error {
 	exec, args := parseCommand(cmd)
 	cmdHandler, present := config.CommandsCallbacks[exec]
 	if !present {
-		config.Log.Trace("No handler for command: %s, args: %v", exec, args)
+		config.Log.Trace(formatLog("No handler for command: %s, args: %v"), exec, args)
 		return nil
 	}
 	return cmdHandler(keyId, cmd, args)
