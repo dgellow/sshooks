@@ -1,4 +1,4 @@
-package sshooks
+package util
 
 import (
 	"io/ioutil"
