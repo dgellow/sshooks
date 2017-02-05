@@ -6,10 +6,10 @@ import (
 	"os/exec"
 	"strings"
 
-	"golang.org/x/crypto/ssh"
-	"github.com/qrclabs/sshooks/errors"
 	sshooks "github.com/qrclabs/sshooks/config"
+	"github.com/qrclabs/sshooks/errors"
 	"github.com/qrclabs/sshooks/util"
+	"golang.org/x/crypto/ssh"
 )
 
 var packageName = "sshooks"

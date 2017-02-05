@@ -3,9 +3,9 @@ package config
 import (
 	"os/exec"
 
-	"golang.org/x/crypto/ssh"
 	"github.com/qrclabs/sshooks/errors"
 	"github.com/qrclabs/sshooks/log"
+	"golang.org/x/crypto/ssh"
 )
 
 type SSHKeygenConfig struct {
