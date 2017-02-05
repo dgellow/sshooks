@@ -98,6 +98,7 @@ func Listen(config *ServerConfig) {
 func serve(config *ServerConfig, sshConfig *ssh.ServerConfig, host string, port uint) {
 	// Listen on given host and port
 	listener, err := net.Listen("tcp", host+":"+UIntToStr(port))
+	defer listener.Close()
 	if err != nil {
 		config.Log.Fatal(formatLog("Failed to start SSH server: %v"), err)
 	}
