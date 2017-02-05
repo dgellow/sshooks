@@ -103,7 +103,6 @@ func serve(config *ServerConfig, sshConfig *ssh.ServerConfig, host string, port 
 		config.Log.Fatal(formatLog("Failed to start SSH server: %v"), err)
 	}
 
-	// Infinite loop
 	for {
 		conn, err := listener.Accept()
 		if err != nil {
@@ -117,13 +116,14 @@ func serve(config *ServerConfig, sshConfig *ssh.ServerConfig, host string, port 
 		// user could easily block entire loop. For example, user could
 		// be asked to trust server key fingerprint and hangs.
 		go func() {
-			config.Log.Warn(formatLog("Handshaking was terminated: %v"), err)
+			config.Log.Trace(formatLog("Handshaking for %s"), conn.RemoteAddr())
+			// Upgrade TCP connection to SSH connection
 			sConn, channels, reqs, err := ssh.NewServerConn(conn, sshConfig)
 			if err != nil {
 				if err == io.EOF {
-					config.Log.Warn(formatLog(fmt.Sprintf("Handshaking was terminated: %v", err)))
+					config.Log.Warn(formatLog("Handshaking was terminated: %v"), err)
 				} else {
-					config.Log.Error(formatLog(fmt.Sprintf("Error on handshaking: %v", err)))
+					config.Log.Error(formatLog("Error during handshake: %v"), err)
 				}
 				return
 			}
@@ -164,7 +164,8 @@ func handleServerConn(config *ServerConfig, keyId string, chans <-chan ssh.NewCh
 			defer ch.Close()
 
 			for req := range in {
-				config.Log.Trace(formatLog("Request: %v"), req)
+				config.Log.Trace(formatLog("Request: %#v"), req)
+				config.Log.Trace(formatLog("Payload (as string): %s"), string(req.Payload))
 				payload := cleanCommand(string(req.Payload))
 				switch req.Type {
 				case "env":
@@ -224,7 +225,6 @@ func handleServerConn(config *ServerConfig, keyId string, chans <-chan ssh.NewCh
 					return
 				default:
 				}
-
 			}
 		}(reqs)
 	}
