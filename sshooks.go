@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 
 	sshooks "github.com/qrclabs/sshooks/config"
-	"github.com/qrclabs/sshooks/transact"
+	"github.com/qrclabs/sshooks/session"
 	"github.com/qrclabs/sshooks/util"
 	"golang.org/x/crypto/ssh"
 )
@@ -101,23 +101,13 @@ func serve(config *sshooks.ServerConfig, sshConfig *ssh.ServerConfig) error {
 		// user could easily block entire loop. For example, user could
 		// be asked to trust server key fingerprint and hangs.
 		go func() {
-			config.Log.Trace(formatLog("Handshaking for %s"), conn.RemoteAddr())
-			err := handleConn(config, sshConfig, conn)
+			config.Log.Trace(formatLog("[%s] Handshaking"), conn.RemoteAddr())
+			session, err := session.NewSession(config, sshConfig, conn)
 			if err != nil {
-				config.Log.Error(formatLog("Error during handshake: %v"), err)
+				config.Log.Error(formatLog("%v"), err)
 				return
 			}
+			session.Run()
 		}()
 	}
-}
-
-func handleConn(config *sshooks.ServerConfig, sshConfig *ssh.ServerConfig, conn net.Conn) error {
-	// Upgrade TCP connection to SSH connection
-	sshConn, channels, requests, err := ssh.NewServerConn(conn, sshConfig)
-	if err != nil {
-		return err
-	}
-
-	go ssh.DiscardRequests(requests)
-	return transact.NewSession(config, sshConn, channels)
 }
