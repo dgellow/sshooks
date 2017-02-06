@@ -7,9 +7,6 @@ import (
 	"os"
 	"path/filepath"
 
-	sshooks "github.com/qrclabs/sshooks/config"
-	"github.com/qrclabs/sshooks/session"
-	"github.com/qrclabs/sshooks/util"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -19,14 +16,14 @@ func formatLog(s string) string {
 	return fmt.Sprintf("%s: %s", packageName, s)
 }
 
-func genPrivateKey(config *sshooks.ServerConfig, keyPath string) error {
+func genPrivateKey(config *ServerConfig, keyPath string) error {
 	os.MkdirAll(filepath.Dir(keyPath), os.ModePerm)
 
 	// Generate a new ssh key pair without password
 	// -f <filename>
 	// -t <keytype>
 	// -N <new_passphrase>
-	_, stderr, err := util.ExecCmd("ssh-keygen", "-f", keyPath, "-t", config.KeygenConfig.Type, "-N", config.KeygenConfig.Passphrase)
+	_, stderr, err := ExecCmd("ssh-keygen", "-f", keyPath, "-t", config.KeygenConfig.Type, "-N", config.KeygenConfig.Passphrase)
 	if err != nil {
 		return fmt.Errorf("failed to generate private key %s: %v", stderr, err)
 	}
@@ -47,7 +44,7 @@ func readPrivateKey(keyPath string) (ssh.Signer, error) {
 }
 
 // Starts an SSH server on given port
-func Listen(config *sshooks.ServerConfig) error {
+func Listen(config *ServerConfig) error {
 	err := config.Validate()
 	if err != nil {
 		return nil
@@ -64,7 +61,7 @@ func Listen(config *sshooks.ServerConfig) error {
 	}
 
 	keyPath := config.PrivatekeyPath
-	if !util.FileExists(keyPath) {
+	if !FileExists(keyPath) {
 		err := genPrivateKey(config, keyPath)
 		if err != nil {
 			return err
@@ -81,8 +78,8 @@ func Listen(config *sshooks.ServerConfig) error {
 }
 
 // Actual server
-func serve(config *sshooks.ServerConfig, sshConfig *ssh.ServerConfig) error {
-	listener, err := net.Listen("tcp", config.Host+":"+util.UIntToStr(config.Port))
+func serve(config *ServerConfig, sshConfig *ssh.ServerConfig) error {
+	listener, err := net.Listen("tcp", config.Host+":"+UIntToStr(config.Port))
 	defer listener.Close()
 	if err != nil {
 		config.Log.Fatal(formatLog("Failed to start SSH server: %v"), err)
@@ -102,7 +99,7 @@ func serve(config *sshooks.ServerConfig, sshConfig *ssh.ServerConfig) error {
 		// be asked to trust server key fingerprint and hangs.
 		go func() {
 			config.Log.Trace(formatLog("[%s] Handshaking"), conn.RemoteAddr())
-			session, err := session.NewSession(config, sshConfig, conn)
+			session, err := newSession(config, sshConfig, conn)
 			if err != nil {
 				config.Log.Error(formatLog("%v"), err)
 				return

@@ -1,4 +1,4 @@
-package session
+package sshooks
 
 import (
 	"fmt"
@@ -7,13 +7,9 @@ import (
 	"os/exec"
 	"strings"
 
-	sshooks "github.com/qrclabs/sshooks/config"
 	"github.com/qrclabs/sshooks/errors"
-	"github.com/qrclabs/sshooks/util"
 	"golang.org/x/crypto/ssh"
 )
-
-var packageName = "sshooks"
 
 func (s *Session) formatLog(str string) string {
 	return fmt.Sprintf("%s: [%s] %s", s.conn.RemoteAddr(), packageName, str)
@@ -22,13 +18,13 @@ func (s *Session) formatLog(str string) string {
 type Session struct {
 	conn      net.Conn
 	sshConn   *ssh.ServerConn
-	config    *sshooks.ServerConfig
+	config    *ServerConfig
 	sshConfig *ssh.ServerConfig
 	channels  <-chan ssh.NewChannel
 	requests  <-chan *ssh.Request
 }
 
-func NewSession(config *sshooks.ServerConfig, sshConfig *ssh.ServerConfig, conn net.Conn) (*Session, error) {
+func newSession(config *ServerConfig, sshConfig *ssh.ServerConfig, conn net.Conn) (*Session, error) {
 	sshConn, channels, requests, err := ssh.NewServerConn(conn, sshConfig)
 	if err != nil {
 		return nil, err
@@ -82,7 +78,7 @@ func (s *Session) envRequest(payload string) error {
 	args[0] = strings.TrimLeft(args[0], "\x04")
 	s.config.Log.Trace(s.formatLog("util.execCmd: args[0]: %s, args[1]: %s"),
 		args[0], args[1])
-	_, _, err := util.ExecCmd("env", args[0]+"="+args[1])
+	_, _, err := ExecCmd("env", args[0]+"="+args[1])
 	if err != nil {
 		return err
 	}

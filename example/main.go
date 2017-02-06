@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/qrclabs/sshooks"
-	sshooksConfig "github.com/qrclabs/sshooks/config"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -72,11 +71,11 @@ func main() {
 		"git-upload-archive": handleUploadArchive,
 		"git-receive-pack":   handleReceivePack,
 	}
-	config := &sshooksConfig.ServerConfig{
+	config := &sshooks.ServerConfig{
 		Host:              "localhost",
 		Port:              1337,
 		PrivatekeyPath:    "key.rsa",
-		KeygenConfig:      sshooksConfig.SSHKeygenConfig{"rsa", ""},
+		KeygenConfig:      sshooks.SSHKeygenConfig{"rsa", ""},
 		PublicKeyCallback: publicKeyHandler,
 		CommandsCallbacks: commandsHandlers,
 		Log:               logger,
