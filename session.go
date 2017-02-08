@@ -7,7 +7,7 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/qrclabs/sshooks/errors"
+	"github.com/dgellow/sshooks/errors"
 	"golang.org/x/crypto/ssh"
 )
 

@@ -1,4 +1,4 @@
-package: github.com/qrclabs/sshooks
+package: github.com/dgellow/sshooks
 import:
 - package: golang.org/x/crypto
   subpackages:

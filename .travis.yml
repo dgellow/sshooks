@@ -20,7 +20,7 @@ script:
   - $GOPATH/bin/glide install
   - go test $($GOPATH/bin/glide novendor)
   - cd example && make build
-  - $GOPATH/bin/overalls -project=github.com/qrclabs/sshooks -covermode=count -ignore=.git,vendor -debug
+  - $GOPATH/bin/overalls -project=github.com/dgellow/sshooks -covermode=count -ignore=.git,vendor -debug
 
 after_success:
   - $GOPATH/bin/goveralls -coverprofile=overalls.coverprofile -service=travis-ci -repotoken $COVERALLS_TOKEN

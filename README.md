@@ -1,6 +1,6 @@
-[![Build Status](https://travis-ci.org/qrclabs/sshooks.svg?branch=master)](https://travis-ci.org/qrclabs/sshooks)
-[![Coverage Status](https://coveralls.io/repos/github/qrclabs/sshooks/badge.svg?branch=master)](https://coveralls.io/github/qrclabs/sshooks?branch=master)
-[![Go Report Card](https://goreportcard.com/badge/github.com/qrclabs/sshooks)](https://goreportcard.com/report/github.com/qrclabs/sshooks)
+[![Build Status](https://travis-ci.org/dgellow/sshooks.svg?branch=master)](https://travis-ci.org/dgellow/sshooks)
+[![Coverage Status](https://coveralls.io/repos/github/dgellow/sshooks/badge.svg?branch=master)](https://coveralls.io/github/dgellow/sshooks?branch=master)
+[![Go Report Card](https://goreportcard.com/badge/github.com/dgellow/sshooks)](https://goreportcard.com/report/github.com/dgellow/sshooks)
 
 # sshooks - React to ssh commands
 
@@ -41,7 +41,7 @@ func Listen(config *ServerConfig)
 
 ## Example
 
-In this example we setup a server responding to the command `git-upload-pack` commands (e.g: sent by `git clone ssh://git@localhost:1337/qrclabs/nanogit.git`). You can read the [example program](https://github.com/qrclabs/sshooks/blob/master/example/main.go) for more details.
+In this example we setup a server responding to the command `git-upload-pack` commands (e.g: sent by `git clone ssh://git@localhost:1337/dgellow/nanogit.git`). You can read the [example program](https://github.com/dgellow/sshooks/blob/master/example/main.go) for more details.
 
 ```go
 func publicKeyHandler(conn ssh.ConnMetadata, key ssh.PublicKey) (*ssh.Permissions, error) {

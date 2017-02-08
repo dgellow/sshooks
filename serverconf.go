@@ -3,8 +3,8 @@ package sshooks
 import (
 	"os/exec"
 
-	"github.com/qrclabs/sshooks/errors"
-	"github.com/qrclabs/sshooks/log"
+	"github.com/dgellow/sshooks/errors"
+	"github.com/dgellow/sshooks/log"
 	"golang.org/x/crypto/ssh"
 )
 
